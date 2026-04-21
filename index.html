@@ -1,0 +1,372 @@
+<!DOCTYPE html> <!-- Indique au navigateur que le document utilise HTML5. -->
+<html lang="fr"> <!-- Ouvre la page HTML et précise que la langue principale est le français. -->
+
+<head> <!-- Ouvre la zone des métadonnées, scripts et styles. -->
+  <meta charset="UTF-8" /> <!-- Permet d’afficher correctement les accents et caractères spéciaux. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Adapte l’affichage aux écrans mobiles. -->
+  <title>BART minimale</title> <!-- Définit le titre de l’onglet du navigateur. -->
+
+  <script src="https://unpkg.com/jspsych@8.2.3"></script> <!-- Charge la bibliothèque principale jsPsych. -->
+  <link href="https://unpkg.com/jspsych@8.2.3/css/jspsych.css" rel="stylesheet" type="text/css" /> <!-- Charge le style par défaut de jsPsych. -->
+
+  <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script> <!-- Charge le plugin pour afficher les pages d’instructions. -->
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script> <!-- Charge le plugin pour afficher un écran avec bouton. -->
+
+  <!-- Idéalement, il faudrait fixer ici la version exacte du plugin BART que tu as testée. -->
+  <script src="https://unpkg.com/@jspsych-contrib/plugin-bart"></script> <!-- Charge le plugin BART utilisé pour la tâche des ballons. -->
+
+  <style> /* Ouvre la zone CSS qui contrôle l’apparence de la page. */
+
+    html, body { /* Applique ces règles à toute la page et au corps du document. */
+      margin: 0; /* Supprime les marges par défaut du navigateur. */
+      padding: 0; /* Supprime les espaces internes par défaut. */
+      width: 100%; /* Force la page à utiliser toute la largeur disponible. */
+      min-height: 100%; /* Assure une hauteur minimale complète. */
+      background: #f8f8f8; /* Définit un fond gris très clair. */
+      font-family: Arial, sans-serif; /* Utilise Arial, puis une police sans-serif si Arial est indisponible. */
+      overflow-x: hidden; /* Empêche le défilement horizontal si un élément dépasse. */
+    } /* Ferme les règles pour html et body. */
+
+    .jspsych-display-element { /* Cible le conteneur principal créé par jsPsych. */
+      width: 100%; /* Utilise toute la largeur disponible. */
+      min-height: 100vh; /* Force une hauteur minimale égale à la hauteur de l’écran. */
+      box-sizing: border-box; /* Inclut les bordures et marges internes dans le calcul des dimensions. */
+    } /* Ferme les règles du conteneur jsPsych principal. */
+
+    .jspsych-content-wrapper { /* Cible l’enveloppe autour du contenu jsPsych. */
+      width: 100%; /* Utilise toute la largeur disponible. */
+      min-height: 100vh; /* Prend au minimum toute la hauteur visible de l’écran. */
+      box-sizing: border-box; /* Rend les calculs de largeur/hauteur plus prévisibles. */
+    } /* Ferme les règles de l’enveloppe jsPsych. */
+
+    .jspsych-content { /* Cible la zone où jsPsych affiche les instructions, la tâche et la fin. */
+      width: 100%; /* Utilise toute la largeur possible jusqu’à la limite maximale. */
+      max-width: 900px; /* Limite la largeur sur grand écran pour éviter un affichage trop étalé. */
+      margin: 0 auto; /* Centre horizontalement le contenu. */
+      box-sizing: border-box; /* Inclut le padding dans la largeur totale. */
+      position: relative; /* Permet de positionner certains éléments internes si nécessaire. */
+    } /* Ferme les règles du contenu jsPsych. */
+
+    .jspsych-btn { /* Cible les boutons générés par jsPsych. */
+      border-radius: 8px; /* Arrondit légèrement les coins des boutons. */
+    } /* Ferme les règles générales des boutons. */
+
+    body.instructions-mode .jspsych-content-wrapper, /* Cible l’enveloppe quand la page est en mode instructions. */
+    body.end-mode .jspsych-content-wrapper { /* Cible aussi l’enveloppe quand la page est en mode fin. */
+      display: flex; /* Active un alignement flexible. */
+      justify-content: center; /* Centre le contenu horizontalement. */
+      align-items: center; /* Centre le contenu verticalement. */
+    } /* Ferme les règles communes aux modes instructions et fin. */
+
+    body.instructions-mode .jspsych-content, /* Cible le contenu en mode instructions. */
+    body.end-mode .jspsych-content { /* Cible le contenu en mode fin. */
+      max-width: 900px; /* Garde une largeur maximale confortable. */
+      padding: 24px 20px; /* Ajoute de l’espace autour du texte. */
+      text-align: center; /* Centre le texte. */
+    } /* Ferme les règles du contenu instructions/fin. */
+
+    body.instructions-mode h2, /* Cible les titres h2 en mode instructions. */
+    body.end-mode h2 { /* Cible les titres h2 en mode fin. */
+      font-size: 28px; /* Définit une taille de titre lisible. */
+      line-height: 1.2; /* Définit l’espacement vertical des lignes du titre. */
+      margin: 0 0 18px 0; /* Ajoute un espace sous le titre. */
+    } /* Ferme les règles des titres. */
+
+    body.instructions-mode p, /* Cible les paragraphes en mode instructions. */
+    body.instructions-mode li, /* Cible les éléments de liste en mode instructions. */
+    body.end-mode p { /* Cible les paragraphes en mode fin. */
+      font-size: 18px; /* Définit une taille de texte confortable. */
+      line-height: 1.5; /* Augmente l’espacement entre les lignes. */
+    } /* Ferme les règles du texte instructions/fin. */
+
+    body.instructions-mode ul { /* Cible les listes dans les instructions. */
+      text-align: left; /* Aligne le texte de la liste à gauche. */
+      display: inline-block; /* Permet de centrer visuellement la liste tout en gardant le texte aligné à gauche. */
+      padding-left: 24px; /* Ajoute l’espace nécessaire pour les puces. */
+      margin: 10px 0 16px 0; /* Ajoute un espace au-dessus et au-dessous de la liste. */
+    } /* Ferme les règles de liste. */
+
+    body.instructions-mode .jspsych-btn, /* Cible les boutons en mode instructions. */
+    body.end-mode .jspsych-btn { /* Cible les boutons en mode fin. */
+      font-size: 18px !important; /* Agrandit le texte des boutons malgré le style par défaut de jsPsych. */
+      padding: 12px 22px !important; /* Agrandit la zone cliquable des boutons. */
+      margin: 8px !important; /* Ajoute de l’espace autour des boutons. */
+      white-space: normal; /* Autorise le texte du bouton à passer à la ligne si nécessaire. */
+    } /* Ferme les règles des boutons instructions/fin. */
+
+    body.bart-mode .jspsych-content-wrapper { /* Cible l’enveloppe quand la tâche BART est affichée. */
+      display: block; /* Utilise un affichage normal plutôt que centré en flex. */
+      min-height: 100vh; /* Garde une hauteur minimale égale à l’écran. */
+      padding-top: 4px; /* Ajoute un petit espace en haut. */
+    } /* Ferme les règles de l’enveloppe BART. */
+
+    body.bart-mode .jspsych-content { /* Cible le contenu pendant la tâche BART. */
+      max-width: 900px; /* Limite la largeur maximale de la tâche. */
+      padding: 0; /* Retire les marges internes pour préserver l’espace disponible. */
+      transform-origin: top center; /* Fait partir le redimensionnement depuis le haut et le centre. */
+    } /* Ferme les règles du contenu BART. */
+
+    @media (max-width: 768px) { /* Applique ces règles aux tablettes et petits écrans. */
+      body.instructions-mode .jspsych-content, /* Cible le contenu instructions sur tablette. */
+      body.end-mode .jspsych-content { /* Cible le contenu fin sur tablette. */
+        padding: 18px 14px; /* Réduit légèrement l’espace interne. */
+      } /* Ferme les règles du contenu tablette. */
+
+      body.instructions-mode h2, /* Cible les titres instructions sur tablette. */
+      body.end-mode h2 { /* Cible les titres fin sur tablette. */
+        font-size: 24px; /* Réduit la taille des titres. */
+      } /* Ferme les règles des titres tablette. */
+
+      body.instructions-mode p, /* Cible les paragraphes instructions sur tablette. */
+      body.instructions-mode li, /* Cible les listes instructions sur tablette. */
+      body.end-mode p { /* Cible les paragraphes fin sur tablette. */
+        font-size: 16px; /* Réduit légèrement la taille du texte. */
+        line-height: 1.4; /* Réduit légèrement l’espacement vertical. */
+      } /* Ferme les règles du texte tablette. */
+
+      body.instructions-mode .jspsych-btn, /* Cible les boutons instructions sur tablette. */
+      body.end-mode .jspsych-btn { /* Cible les boutons fin sur tablette. */
+        font-size: 17px !important; /* Réduit légèrement le texte des boutons. */
+        padding: 12px 18px !important; /* Ajuste la taille des boutons. */
+      } /* Ferme les règles des boutons tablette. */
+    } /* Ferme la section tablette. */
+
+    @media (max-width: 480px) { /* Applique ces règles aux téléphones. */
+      body.instructions-mode .jspsych-content, /* Cible le contenu instructions sur téléphone. */
+      body.end-mode .jspsych-content { /* Cible le contenu fin sur téléphone. */
+        padding: 14px 10px; /* Réduit l’espace interne pour gagner de la place. */
+      } /* Ferme les règles du contenu téléphone. */
+
+      body.instructions-mode h2, /* Cible les titres instructions sur téléphone. */
+      body.end-mode h2 { /* Cible les titres fin sur téléphone. */
+        font-size: 21px; /* Réduit la taille des titres sur téléphone. */
+      } /* Ferme les règles des titres téléphone. */
+
+      body.instructions-mode p, /* Cible les paragraphes instructions sur téléphone. */
+      body.instructions-mode li, /* Cible les listes instructions sur téléphone. */
+      body.end-mode p { /* Cible les paragraphes fin sur téléphone. */
+        font-size: 15px; /* Réduit la taille du texte sur téléphone. */
+        line-height: 1.35; /* Resserre légèrement les lignes. */
+      } /* Ferme les règles du texte téléphone. */
+
+      body.instructions-mode .jspsych-btn, /* Cible les boutons instructions sur téléphone. */
+      body.end-mode .jspsych-btn { /* Cible les boutons fin sur téléphone. */
+        width: 100% !important; /* Force les boutons à prendre toute la largeur disponible. */
+        font-size: 16px !important; /* Définit une taille lisible pour les boutons. */
+        padding: 12px !important; /* Garde une zone cliquable confortable. */
+        margin: 6px 0 !important; /* Espace les boutons verticalement. */
+      } /* Ferme les règles des boutons téléphone. */
+    } /* Ferme la section téléphone. */
+
+  </style> <!-- Ferme la zone CSS. -->
+</head> <!-- Ferme l’en-tête du document. -->
+
+<body class="instructions-mode"> <!-- Ouvre le corps de la page avec le mode instructions activé au départ. -->
+
+<script> // Ouvre la zone JavaScript principale.
+
+  const jsPsych = initJsPsych({}); // Initialise jsPsych avec les paramètres par défaut.
+
+  const timeline = []; // Crée la timeline qui contiendra toutes les étapes de l’expérience.
+
+  let totalPoints = 0; // Stocke le score total cumulé pendant toute la tâche.
+
+  let finalResults = null; // Stocke les résultats finaux qui seront envoyés à Qualtrics.
+
+  function setPageMode(mode) { // Crée une fonction pour changer le mode visuel de la page.
+    document.body.classList.remove("instructions-mode", "bart-mode", "end-mode"); // Retire les anciens modes du body.
+    document.body.classList.add(mode); // Ajoute le nouveau mode demandé.
+  } // Ferme la fonction setPageMode.
+
+  function getBartSizingForCurrentScreen() { // Crée une fonction qui calcule la taille du ballon selon l’écran.
+    const screenWidth = window.innerWidth; // Lit la largeur actuelle de la fenêtre ou de l’iframe.
+    const screenHeight = window.innerHeight; // Lit la hauteur actuelle de la fenêtre ou de l’iframe.
+
+    let startSize = 0.3; // Définit la taille de départ par défaut du ballon.
+    let sizeIncrement = 0.02; // Définit l’augmentation par défaut du ballon à chaque gonflage.
+
+    if (screenWidth <= 480) { // Vérifie si l’écran est très petit, par exemple un téléphone ou une petite iframe Qualtrics.
+      startSize = 0.20; // Réduit la taille initiale du ballon pour garder les boutons visibles.
+      sizeIncrement = 0.025; // Ajuste l’augmentation à chaque gonflage sur petit écran.
+    } else if (screenWidth <= 768) { // Vérifie si l’écran correspond plutôt à une tablette ou une iframe moyenne.
+      startSize = 0.25; // Réduit un peu la taille initiale du ballon.
+      sizeIncrement = 0.03; // Ajuste l’augmentation du ballon pour cette taille d’écran.
+    } else if (screenWidth <= 1024) { // Vérifie si l’écran est intermédiaire.
+      startSize = 0.30; // Garde une taille initiale standard.
+      sizeIncrement = 0.04; // Augmente un peu plus vite le ballon sur écran plus large.
+    } // Ferme les conditions liées à la largeur.
+
+    if (screenHeight < 800) { // Vérifie si la hauteur disponible est faible.
+      startSize = Math.max(0.18, startSize - 0.03); // Réduit la taille initiale sans descendre sous 0.18.
+      sizeIncrement = Math.max(0.02, sizeIncrement - 0.005); // Réduit l’augmentation sans descendre sous 0.02.
+    } // Ferme la condition liée à la hauteur.
+
+    return { startSize, sizeIncrement }; // Renvoie les deux valeurs calculées.
+  } // Ferme la fonction de calcul des tailles BART.
+
+  function fitBartToViewport() { // Crée une fonction qui réduit visuellement la tâche si elle dépasse la hauteur disponible.
+    if (!document.body.classList.contains("bart-mode")) return; // Arrête la fonction si on n’est pas dans la tâche BART.
+
+    const content = document.querySelector(".jspsych-content"); // Récupère le conteneur principal du contenu jsPsych.
+    if (!content) return; // Arrête la fonction si le conteneur n’existe pas encore.
+
+    content.style.transform = "scale(1)"; // Réinitialise le zoom visuel avant de mesurer la vraie hauteur.
+    content.style.marginTop = "0px"; // Réinitialise la marge du haut avant le nouveau calcul.
+
+    const viewportHeight = window.innerHeight; // Lit la hauteur visible actuelle.
+    const availableHeight = viewportHeight - 8; // Garde une petite marge de sécurité verticale.
+    const rect = content.getBoundingClientRect(); // Mesure la taille réelle du contenu affiché.
+
+    if (rect.height > availableHeight) { // Vérifie si le contenu est trop grand pour la hauteur disponible.
+      let scale = availableHeight / rect.height; // Calcule le facteur de réduction nécessaire.
+
+      scale = Math.min(scale, 1); // Empêche d’agrandir le contenu au-delà de sa taille normale.
+      scale = Math.max(scale, 0.68); // Empêche de trop réduire l’interface, pour garder les boutons lisibles.
+
+      content.style.transform = `scale(${scale})`; // Applique le facteur de réduction visuelle.
+
+      const scaledHeight = rect.height * scale; // Calcule la hauteur après réduction.
+      const topGap = Math.max(0, (viewportHeight - scaledHeight) / 20); // Calcule une petite marge supérieure.
+      content.style.marginTop = `${topGap}px`; // Applique cette marge supérieure.
+    } // Ferme la condition de réduction.
+  } // Ferme la fonction fitBartToViewport.
+
+  window.addEventListener("resize", function() { // Déclenche une action quand la fenêtre ou l’iframe change de taille.
+    setTimeout(fitBartToViewport, 100); // Attend un court instant puis réajuste l’affichage BART.
+  }); // Ferme l’écouteur d’événement resize.
+
+  const bartSizing = getBartSizingForCurrentScreen(); // Calcule une première fois les tailles du ballon au chargement.
+
+  const instructions = { // Définit l’étape des instructions.
+    type: jsPsychInstructions, // Utilise le plugin jsPsych d’instructions.
+    pages: [ // Définit les pages d’instructions à afficher.
+      ` 
+      <h2>Tâche des ballons</h2>
+      <p>Dans cette tâche, tu verras plusieurs ballons.</p>
+      <p>À chaque ballon, tu peux :</p>
+      <ul>
+        <li><strong>Gonfler</strong> : gonfler le ballon et gagner des points</li>
+        <li><strong>Encaisser</strong> : sécuriser les points du ballon actuel</li>
+      </ul>
+      <p>Attention : si le ballon éclate, tu perds les points de ce ballon.</p>
+      <p>Essaie de gagner le plus de points possible.</p>
+      `, // Première page d’instructions.
+      `
+      <h2>Risque et score</h2>
+      <p>Le risque d’explosion n’est pas visible.</p>
+      <p>Chaque ballon peut éclater à un moment différent.</p>
+      <p>Clique sur <strong>Next</strong> pour commencer.</p>
+      ` // Deuxième page d’instructions.
+    ], // Ferme la liste des pages.
+    show_clickable_nav: true, // Affiche les boutons de navigation cliquables.
+    button_label_next: "Next", // Définit le texte du bouton suivant.
+    button_label_previous: "Back", // Définit le texte du bouton précédent.
+    on_load: function() { // Exécute ce code au chargement des instructions.
+      setPageMode("instructions-mode"); // Active le style prévu pour les instructions.
+    } // Ferme la fonction on_load.
+  }; // Ferme la définition des instructions.
+
+  timeline.push(instructions); // Ajoute les instructions au début de la timeline.
+
+  const N_BALLOONS = 15; // Définit le nombre total de ballons dans la tâche.
+
+  const popThresholds = [18, 42, 9, 31, 56, 14, 27, 48, 7, 36, 60, 22, 11, 53, 29]; // Définit le seuil d’explosion fixe pour chaque ballon.
+
+  for (let i = 0; i < N_BALLOONS; i++) { // Crée une boucle pour ajouter les 15 ballons à la timeline.
+    timeline.push({ // Ajoute un essai BART à la timeline.
+      type: jsPsychBart, // Utilise le plugin BART.
+      pop_threshold: popThresholds[i], // Donne au ballon actuel son seuil d’explosion.
+      starting_total_points: function() { // Définit le score total affiché au début de ce ballon.
+        return totalPoints; // Renvoie le score cumulé actuel.
+      }, // Ferme la fonction starting_total_points.
+      points_per_pump: 1, // Donne 1 point par gonflage réussi.
+      balloon_color: "#e74c3c", // Définit la couleur rouge du ballon.
+      balloon_starting_size: bartSizing.startSize, // Définit la taille initiale selon l’écran/la fenêtre Qualtrics.
+      balloon_size_increment: bartSizing.sizeIncrement, // Définit l’augmentation de taille selon l’écran/la fenêtre Qualtrics.
+      show_balloon_value: true, // Affiche les points du ballon en cours.
+      show_total_points: true, // Affiche le score total cumulé.
+      pump_button_label: "Gonfler", // Définit le texte du bouton pour gonfler.
+      collect_button_label: "Encaisser", // Définit le texte du bouton pour encaisser.
+      data: { // Ajoute des informations personnalisées aux données de cet essai.
+        task: "bart", // Marque cet essai comme appartenant à la tâche BART.
+        balloon_number: i + 1 // Indique le numéro du ballon, de 1 à 15.
+      }, // Ferme l’objet data.
+      on_load: function() { // Exécute ce code quand un ballon apparaît.
+        setPageMode("bart-mode"); // Active le style prévu pour la tâche BART.
+        setTimeout(fitBartToViewport, 80); // Ajuste rapidement l’affichage après le chargement.
+        setTimeout(fitBartToViewport, 250); // Réajuste après un délai plus long si le rendu a changé.
+      }, // Ferme la fonction on_load.
+      on_finish: function(data) { // Exécute ce code quand le ballon est terminé.
+        totalPoints = data.total_points; // Met à jour le score total avec la valeur fournie par le plugin BART.
+      } // Ferme la fonction on_finish.
+    }); // Ferme l’essai BART ajouté à la timeline.
+  } // Ferme la boucle des ballons.
+
+  const endScreen = { // Définit l’écran final de la tâche.
+    type: jsPsychHtmlButtonResponse, // Utilise un écran HTML avec bouton.
+    stimulus: function() { // Génère le contenu affiché sur l’écran final.
+      const data = jsPsych.data.get().filter({ task: "bart" }).values(); // Récupère uniquement les données des essais BART.
+
+      let totalPumps = 0; // Prépare le total de tous les gonflages.
+      let explosions = 0; // Prépare le total des ballons éclatés.
+      let pumpsNonExploded = 0; // Prépare le total des gonflages sur les ballons non éclatés.
+      let nonExplodedCount = 0; // Prépare le nombre de ballons non éclatés.
+
+      data.forEach(function(d) { // Parcourt les données de chaque ballon.
+        totalPumps += d.pumps; // Ajoute les gonflages de ce ballon au total.
+
+        if (d.popped) { // Vérifie si ce ballon a éclaté.
+          explosions++; // Ajoute une explosion au compteur.
+        } else { // Sinon, le ballon a été encaissé avant d’éclater.
+          pumpsNonExploded += d.pumps; // Ajoute ses gonflages au total des ballons non éclatés.
+          nonExplodedCount++; // Ajoute un ballon au compteur des ballons non éclatés.
+        } // Ferme la condition éclaté/non éclaté.
+      }); // Ferme la boucle sur les données.
+
+      const adjustedAverage = nonExplodedCount > 0 ? pumpsNonExploded / nonExplodedCount : 0; // Calcule la moyenne ajustée des gonflages sur ballons non éclatés.
+
+      const device = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "mobile" : "ordinateur"; // Détecte approximativement si l’utilisateur est sur mobile ou ordinateur.
+
+      finalResults = { // Crée l’objet final qui sera envoyé à Qualtrics.
+        type: "bartComplete", // Indique au questionnaire parent que la tâche BART est terminée.
+        pumps: totalPumps, // Enregistre le nombre total de gonflages.
+        explosions: explosions, // Enregistre le nombre total d’explosions.
+        score: totalPoints, // Enregistre le score final cumulé.
+        adjustedAverage: adjustedAverage, // Enregistre la moyenne ajustée des gonflages.
+        nonExplodedCount: nonExplodedCount, // Enregistre le nombre de ballons non éclatés.
+        device: device, // Enregistre le type d’appareil détecté.
+        screenwidth: window.innerWidth, // Enregistre la largeur actuelle de la fenêtre ou iframe.
+        screenheight: window.innerHeight, // Enregistre aussi la hauteur disponible, utile en contexte Qualtrics.
+        sequenceVersion: "fixed15_v1", // Indique la version de la séquence de seuils utilisée.
+        balloonData: JSON.stringify(data) // Transforme toutes les données des ballons en texte JSON pour l’envoi.
+      }; // Ferme l’objet finalResults.
+
+      return "<h2>Fin de la tâche</h2>" + // Affiche le titre de fin.
+             "<p>Score final : <strong>" + totalPoints + "</strong></p>" + // Affiche le score final au participant.
+             "<p>Clique sur le bouton ci-dessous pour continuer.</p>"; // Demande au participant de continuer.
+    }, // Ferme la fonction stimulus.
+    choices: ["Continuer"], // Définit le texte du bouton final.
+    on_load: function() { // Exécute ce code au chargement de l’écran final.
+      setPageMode("end-mode"); // Active le style prévu pour l’écran final.
+    }, // Ferme la fonction on_load.
+    on_finish: function() { // Exécute ce code quand le participant clique sur Continuer.
+      if (window.parent && finalResults) { // Vérifie qu’il y a une fenêtre parent et que les résultats existent.
+        window.parent.postMessage(finalResults, "*"); // Envoie les résultats à Qualtrics ou à la page parent.
+      } // Ferme la première condition d’envoi.
+
+      setTimeout(function() { // Prévoit un deuxième envoi après un court délai.
+        if (window.parent && finalResults) { // Vérifie encore que la fenêtre parent et les résultats existent.
+          window.parent.postMessage(finalResults, "*"); // Réenvoie les résultats par sécurité.
+        } // Ferme la condition du deuxième envoi.
+      }, 300); // Attend 300 millisecondes avant le deuxième envoi.
+    } // Ferme la fonction on_finish.
+  }; // Ferme la définition de l’écran final.
+
+  timeline.push(endScreen); // Ajoute l’écran final à la timeline.
+
+  jsPsych.run(timeline); // Lance toute l’expérience jsPsych.
+
+</script> <!-- Ferme la zone JavaScript. -->
+
+</body> <!-- Ferme le corps de la page. -->
+</html> <!-- Ferme le document HTML. -->
